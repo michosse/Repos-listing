@@ -9,14 +9,11 @@ import java.util.stream.Collectors;
 
 public class UserReposAssembler {
     public static GetUserReposResponse.UserRepo toUserRepo(Repo repo, List<Branch> branches){
-        return GetUserReposResponse.UserRepo.builder()
-                .repositoryName(repo.getName())
-                .owner(repo.getOwner().getLogin())
-                .branches(branches.stream().map(b-> GetUserReposResponse.Branch.builder()
-                                .name(b.getName())
-                                .lastCommitSha(b.getCommit().getSha())
-                                .build())
-                        .collect(Collectors.toList()))
-                .build();
+        return new GetUserReposResponse.UserRepo(
+                repo.name(),
+                repo.owner().login(),
+                branches.stream().map(b-> new GetUserReposResponse.Branch(b.name(), b.commit().sha()))
+                        .collect(Collectors.toList())
+        );
     }
 }

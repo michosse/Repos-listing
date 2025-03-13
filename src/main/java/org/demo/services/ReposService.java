@@ -2,7 +2,7 @@ package org.demo.services;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import jakarta.enterprise.context.RequestScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.WebApplicationException;
@@ -16,14 +16,14 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RequestScoped
+@ApplicationScoped
 public class ReposService {
     @RestClient
     @Inject
     GhRestClient ghRestClient;
 
     public Uni<List<Repo>> getUsersPublicRepos(String username){
-        return ghRestClient.getUsersPublicRepos(username).map(repos-> repos.stream().filter(r -> !r.isFork()).collect(Collectors.toList()));
+        return ghRestClient.getUsersPublicRepos(username).map(repos-> repos.stream().filter(r -> !r.fork()).collect(Collectors.toList()));
     }
 
     public Uni<List<Branch>> getReposBranches(String username, String reponame){
@@ -32,11 +32,11 @@ public class ReposService {
 
     public Uni<List<GetUserReposResponse.UserRepo>> getUsersReposWithBranches(String username){
         return getUsersPublicRepos(username)
-            .onFailure(WebApplicationException.class).transform(e -> new NotFoundException("User not found"))
+            .onFailure(WebApplicationException.class).transform(e -> new NotFoundException())
             .onItem().transformToUni(reposApiResponse ->
                 Multi.createFrom().iterable(reposApiResponse)
                     .onItem().transformToUniAndMerge(repo ->
-                        getReposBranches(username, repo.getName())
+                        getReposBranches(username, repo.name())
                             .onItem().transform(branches -> UserReposAssembler.toUserRepo(repo, branches))
                     )
                     .collect().asList()

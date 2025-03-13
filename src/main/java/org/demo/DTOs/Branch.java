@@ -1,16 +1,7 @@
 package org.demo.DTOs;
 
-import lombok.*;
+public record Branch(String name, org.demo.DTOs.Branch.Commit commit) {
 
-@Getter
-@Setter
-@AllArgsConstructor
-public class Branch {
-    @Setter
-    @Getter
-    public static class Commit{
-        private String sha;
+    public record Commit(String sha) {
     }
-    private String name;
-    private Commit commit;
 }
